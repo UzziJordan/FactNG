@@ -23,4 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-Structure.md
+.env
+.env.*.local
+!.env.example
+!.env.local.example 

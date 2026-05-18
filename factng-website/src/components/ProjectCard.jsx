@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const ProjectCard = ({ image, category, title, location, index = 0 }) => {
+const ProjectCard = ({ image, category, name, location, index = 0 }) => {
 
   return (
     <motion.div 
@@ -27,8 +27,8 @@ const ProjectCard = ({ image, category, title, location, index = 0 }) => {
             hover: { scale: 1.1 }
           }}
           transition={{ duration: 0.4 }}
-          src={image}
-          alt={title}
+          src={typeof image === 'object' ? image.url : image}
+          alt={name}
           className="w-full h-full object-cover"
         />
       </div>
@@ -37,7 +37,7 @@ const ProjectCard = ({ image, category, title, location, index = 0 }) => {
         <p className="text-red-500 text-[16px] font-semibold mb-1">{category}</p>
 
         <h3 className="text-[22px] font-bold text-gray-900">
-          {title}
+          {name}
         </h3>
 
         <p className="text-gray-500 text-sm mt-1">

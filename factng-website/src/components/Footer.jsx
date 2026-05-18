@@ -1,12 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaTwitter, FaWhatsapp, FaTiktok } from "react-icons/fa";
 import { FiMapPin, FiPhone, FiMail } from "react-icons/fi";
+import { MdRefresh } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { getOffices, getSocialLinks, getCompanyInfo } from "../services/api";
 
 import logo from '../assets/Fact NG Logo.png'
 
 const Footer = () => {
+  const [offices, setOffices] = useState([]);
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [companyInfo, setCompanyInfo] = useState({
+    phone: '+234 800 FACT NG',
+    email: 'hello@factng.com'
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [officesData, socialData, infoData] = await Promise.all([
+          getOffices(),
+          getSocialLinks(),
+          getCompanyInfo()
+        ]);
+        setOffices(officesData);
+        setSocialLinks(socialData);
+        if (infoData) setCompanyInfo(infoData);
+      } catch (error) {
+        console.error("Error fetching footer data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const getSocialIcon = (platform) => {
+    switch (platform.toLowerCase()) {
+      case 'instagram': return <FaInstagram />;
+      case 'facebook': return <FaFacebookF />;
+      case 'twitter':
+      case 'x': return <FaTwitter />;
+      case 'whatsapp': return <FaWhatsapp />;
+      case 'tiktok': return <FaTiktok />;
+      default: return null;
+    }
+  };
+
   const containerVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
@@ -47,20 +86,25 @@ const Footer = () => {
           </p>
 
           <div className="flex gap-4">
-            {[
-              { icon: <FaInstagram />, link: "#" },
-              { icon: <FaFacebookF />, link: "#" },
-              { icon: <FaTwitter />, link: "#" }
-            ].map((social, i) => (
+            {socialLinks.map((social, i) => (
               <motion.a
                 key={i}
-                href={social.link}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 whileHover={{ y: -5, backgroundColor: "#C41E24", color: "#fff" }}
                 className="bg-white/5 p-3 rounded-full transition-colors duration-300 border border-white/5"
               >
-                {social.icon}
+                {getSocialIcon(social.platform)}
               </motion.a>
             ))}
+            {socialLinks.length === 0 && (
+              <>
+                <div className="bg-white/5 p-3 rounded-full border border-white/5"><FaInstagram /></div>
+                <div className="bg-white/5 p-3 rounded-full border border-white/5"><FaFacebookF /></div>
+                <div className="bg-white/5 p-3 rounded-full border border-white/5"><FaTwitter /></div>
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -113,15 +157,31 @@ const Footer = () => {
           </h3>
 
           <div className="space-y-6 text-sm font-medium">
-            <div className="flex gap-4 group cursor-pointer">
-              <div className="bg-white/5 p-3 rounded-xl text-[#C41E24] h-fit group-hover:bg-[#C41E24] group-hover:text-white transition-all duration-300">
-                <FiMapPin />
+            {offices.map((office, idx) => (
+              <div key={idx} className="flex gap-4 group cursor-pointer">
+                <div className="bg-white/5 p-3 rounded-xl text-[#C41E24] h-fit group-hover:bg-[#C41E24] group-hover:text-white transition-all duration-300">
+                  <FiMapPin />
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-1">{office.name}</p>
+                  {office.addresses.map((addr, i) => (
+                    <p key={i} className="text-xs text-gray-500">{addr.address}</p>
+                  ))}
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-white mb-1">Abuja HQ</p>
-                <p className="text-xs text-gray-500">Wuse 2, Abuja, Nigeria</p>
+            ))}
+
+            {offices.length === 0 && (
+              <div className="flex gap-4 group cursor-pointer">
+                <div className="bg-white/5 p-3 rounded-xl text-[#C41E24] h-fit group-hover:bg-[#C41E24] group-hover:text-white transition-all duration-300">
+                  <FiMapPin />
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-1">Abuja HQ</p>
+                  <p className="text-xs text-gray-500">Wuse 2, Abuja, Nigeria</p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-4 group cursor-pointer">
               <div className="bg-white/5 p-3 rounded-xl text-[#C41E24] h-fit group-hover:bg-[#C41E24] group-hover:text-white transition-all duration-300">
@@ -129,7 +189,7 @@ const Footer = () => {
               </div>
               <div>
                 <p className="font-bold text-white mb-1">Call Us</p>
-                <p className="text-xs text-gray-500">+234 800 FACT NG</p>
+                <p className="text-xs text-gray-500">{companyInfo.phone}</p>
               </div>
             </div>
 
@@ -139,7 +199,17 @@ const Footer = () => {
               </div>
               <div>
                 <p className="font-bold text-white mb-1">Email</p>
-                <p className="text-xs text-gray-500">hello@factng.com</p>
+                <p className="text-xs text-gray-500">{companyInfo.email}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="bg-white/5 p-3 rounded-xl text-[#C41E24] h-fit">
+                <MdRefresh />
+              </div>
+              <div>
+                <p className="font-bold text-white mb-1">Working Hours</p>
+                <p className="text-xs text-gray-500">{companyInfo.workingHours}</p>
               </div>
             </div>
           </div>

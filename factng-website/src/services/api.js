@@ -1,85 +1,238 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Create an axios instance
+const api = axios.create({
+  baseURL: API_URL,
+});
+
+// Add a request interceptor to include the token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// --- ADMIN / AUTH ---
+export const login = async (credentials) => {
+  const response = await api.post('/admin/login', credentials);
+  return response.data;
+};
+
+export const getProfile = async () => {
+  const response = await api.get('/admin/me');
+  return response.data;
+};
+
+export const updateAdminProfile = async (profileData) => {
+  const response = await api.put('/admin/profile', profileData);
+  return response.data;
+};
+
+// --- DASHBOARD ---
+export const getDashboardStats = async () => {
+  const response = await api.get('/admin/dashboard/stats');
+  return response.data;
+};
+
+export const getRecentProjects = async () => {
+  const response = await api.get('/admin/dashboard/recent-projects');
+  return response.data;
+};
+
+export const getRecentMessages = async () => {
+  const response = await api.get('/admin/dashboard/recent-messages');
+  return response.data;
+};
+
+// --- PROJECTS ---
+export const getAllProjects = async (params = {}) => {
+  const response = await api.get('/projects', { params });
+  return response.data;
+};
+
 export const getFeaturedProjects = async () => {
-  return [
-    {
-      _id: "1",
-      title: "Modern Minimalist Villa",
-      category: "Interior",
-      location: "Maitama, Abuja",
-      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
-    },
-    {
-      _id: "2",
-      title: "Luxury Penthouse",
-      category: "Interior",
-      location: "Ikoyi, Lagos",
-      image: "https://images.unsplash.com/photo-1600607687644-c7171b42498d"
-    },
-    {
-      _id: "3",
-      title: "Corporate HQ Facade",
-      category: "Exterior",
-      location: "Victoria Island, Lagos",
-      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"
-    },
-    {
-      _id: "4",
-      title: "Boutique Hotel Lobby",
-      category: "Commercial",
-      location: "Wuse 2, Abuja",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"
-    },
-    {
-      _id: "5",
-      title: "Contemporary Kitchen",
-      category: "Renovation",
-      location: "Lekki, Lagos",
-      image: "https://images.unsplash.com/photo-1556912173-3bb406ef7e77"
-    },
-    {
-      _id: "6",
-      title: "Tropical Oasis Garden",
-      category: "Exterior",
-      location: "Asokoro, Abuja",
-      image: "https://images.unsplash.com/photo-1507089947368-19c1da9775ae"
-    }
-  ];
+  const response = await api.get('/projects/featured');
+  return response.data;
 };
 
-export const getAllProjects = async () => {
-  return await getFeaturedProjects(); // temporary reuse
+export const getAdminProjects = async (params = {}) => {
+  const response = await api.get('/projects/admin', { params });
+  return response.data;
 };
 
-
-export const getExpartsCard = async () => {
-  return [
-    {
-      _id: "1",
-      name: "Oluwaseun Adebayo",
-      position: "Founder & CEO",
-      image: "https://i.pinimg.com/1200x/1f/c9/6e/1fc96e1619b913eade6eb6533f72cf83.jpg"
-    },
-
-    {
-      _id: "2",
-      name: "Ngozi Eze",
-      position: "Lead Interior Designer",
-      image: "https://i.pinimg.com/736x/0a/de/79/0ade7978a78e1880decc809bdd382f60.jpg"
-    },
-    {
-      _id: "3",
-      name: "Ibrahim Musa",
-      position: "Head of Arch",
-      image: "https://i.pinimg.com/736x/3c/b2/3f/3cb23f898323838f9f9b0c3e7e2d4437.jpg"
-    },
-    {
-      _id: "4",
-      name: "Chick Nwosu",
-      position: "Project Manager",
-      image: "https://i.pinimg.com/1200x/e1/b4/7e/e1b47ecffa82c317acea1d3cb9a6f836.jpg"
-    },
-  ];
+export const getProjectById = async (id) => {
+  const response = await api.get(`/projects/${id}`);
+  return response.data;
 };
 
-export const getAllExparts = async () => {
-  return await getExpartsCard(); // temporary reuse
+export const getAdminProjectById = async (id) => {
+  const response = await api.get(`/projects/${id}/admin`);
+  return response.data;
 };
+
+export const createProject = async (formData) => {
+  const response = await api.post('/projects', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const updateProject = async (id, formData) => {
+  const response = await api.put(`/projects/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const deleteProject = async (id) => {
+  const response = await api.delete(`/projects/${id}`);
+  return response.data;
+};
+
+// --- SOCIAL LINKS ---
+export const getSocialLinks = async () => {
+  const response = await api.get('/social-links');
+  return response.data;
+};
+
+export const getAdminSocialLinks = async () => {
+  const response = await api.get('/social-links/admin');
+  return response.data;
+};
+
+export const createSocialLink = async (linkData) => {
+  const response = await api.post('/social-links', linkData);
+  return response.data;
+};
+
+export const updateSocialLink = async (id, linkData) => {
+  const response = await api.put(`/social-links/${id}`, linkData);
+  return response.data;
+};
+
+export const deleteSocialLink = async (id) => {
+  const response = await api.delete(`/social-links/${id}`);
+  return response.data;
+};
+
+// --- EXPERTS ---
+export const getAllExperts = async () => {
+  const response = await api.get('/experts');
+  return response.data;
+};
+
+export const getAdminExperts = async () => {
+  const response = await api.get('/experts/admin');
+  return response.data;
+};
+
+export const createExpert = async (formData) => {
+  const response = await api.post('/experts', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const updateExpert = async (id, formData) => {
+  const response = await api.put(`/experts/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export const deleteExpert = async (id) => {
+  const response = await api.delete(`/experts/${id}`);
+  return response.data;
+};
+
+export const reorderExperts = async (expertsData) => {
+  const response = await api.put('/experts/reorder', { experts: expertsData });
+  return response.data;
+};
+
+// --- CONTACT MESSAGES ---
+export const submitContactForm = async (formData) => {
+  const response = await api.post('/contacts', formData);
+  return response.data;
+};
+
+export const getAdminMessages = async (params = {}) => {
+  const response = await api.get('/contacts/admin', { params });
+  return response.data;
+};
+
+export const getMessageById = async (id) => {
+  const response = await api.get(`/contacts/${id}`);
+  return response.data;
+};
+
+export const updateMessageStatus = async (id, status) => {
+  const response = await api.put(`/contacts/${id}`, { status });
+  return response.data;
+};
+
+export const deleteMessage = async (id) => {
+  const response = await api.delete(`/contacts/${id}`);
+  return response.data;
+};
+
+// --- STORY / CONTENT ---
+export const getStory = async () => {
+  const response = await api.get('/story');
+  return response.data;
+};
+
+export const getAdminStory = async () => {
+  const response = await api.get('/story/admin');
+  return response.data;
+};
+
+export const updateStory = async (formData) => {
+  const response = await api.put('/story', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+// --- OFFICES ---
+export const getOffices = async () => {
+  const response = await api.get('/offices');
+  return response.data;
+};
+
+// --- COMPANY INFO ---
+export const getCompanyInfo = async () => {
+  const response = await api.get('/company-info');
+  return response.data;
+};
+
+export const updateCompanyInfo = async (infoData) => {
+  const response = await api.put('/company-info', infoData);
+  return response.data;
+};
+
+export const getAdminOffices = async () => {
+  const response = await api.get('/offices/admin');
+  return response.data;
+};
+
+export const createOffice = async (officeData) => {
+  const response = await api.post('/offices', officeData);
+  return response.data;
+};
+
+export const updateOffice = async (id, officeData) => {
+  const response = await api.put(`/offices/${id}`, officeData);
+  return response.data;
+};
+
+export const deleteOffice = async (id) => {
+  const response = await api.delete(`/offices/${id}`);
+  return response.data;
+};
+
+export default api;

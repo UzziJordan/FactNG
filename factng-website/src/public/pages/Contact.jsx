@@ -1,8 +1,49 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaWhatsapp, FaClock, FaPaperPlane, FaChevronDown } from "react-icons/fa";
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaWhatsapp, FaClock, FaPaperPlane, FaChevronDown, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { getCompanyInfo, submitContactForm, getOffices, getSocialLinks } from "../../services/api";
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    fullname: '',
+    phone: '',
+    email: '',
+    serviceInterested: '',
+    message: ''
+  });
+  const [companyInfo, setCompanyInfo] = useState({
+    phone: '+234 (0) 800 FACT NG',
+    email: 'hello@factng.com',
+    workingHours: 'Mon - Fri: 8am - 6pm'
+  });
+  const [offices, setOffices] = useState([]);
+  const [whatsappLink, setWhatsappLink] = useState('https://wa.me/234800FACTNG');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [infoData, officesData, socialData] = await Promise.all([
+          getCompanyInfo(),
+          getOffices(),
+          getSocialLinks()
+        ]);
+        
+        if (infoData) setCompanyInfo(infoData);
+        if (officesData) setOffices(officesData);
+        
+        if (socialData) {
+          const wa = socialData.find(s => s.platform.toLowerCase() === 'whatsapp');
+          if (wa) setWhatsappLink(wa.url);
+        }
+      } catch (error) {
+        console.error('Error fetching contact page data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const services = [
     "Interior Design",
     "Exterior Design",
@@ -11,6 +52,36 @@ const Contact = () => {
     "Furniture Sourcing",
     "Project Management"
   ];
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus({ type: '', message: '' });
+
+    try {
+      await submitContactForm(formData);
+      setStatus({ type: 'success', message: 'Thank you! Your message has been sent successfully. We will get back to you soon.' });
+      setFormData({
+        fullname: '',
+        phone: '',
+        email: '',
+        serviceInterested: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      setStatus({ 
+        type: 'error', 
+        message: error.response?.data?.message || 'Something went wrong. Please try again later.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ fontFamily: " inter " }} className="bg-[#f5f3f1] min-h-screen pt-40 pb-24 px-6 overflow-x-hidden">
@@ -40,11 +111,24 @@ const Contact = () => {
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Send us a Message</h2>
             
-            <form className="space-y-6">
+            {status.message && (
+              <div className={`mb-8 p-6 rounded-2xl flex items-start gap-4 ${
+                status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
+              }`}>
+                {status.type === 'success' ? <FaCheckCircle className="text-2xl mt-1" /> : <FaExclamationCircle className="text-2xl mt-1" />}
+                <p className="font-medium">{status.message}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">Full Name</label>
                 <input 
                   type="text" 
+                  name="fullname"
+                  required
+                  value={formData.fullname}
+                  onChange={handleChange}
                   placeholder="John Doe"
                   className="w-full bg-[#f9f9f9] border-none rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-[#C41E24]/20 transition-all text-gray-900"
                 />
@@ -55,6 +139,10 @@ const Contact = () => {
                   <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">Phone Number</label>
                   <input 
                     type="tel" 
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={handleChange}
                     placeholder="+234 ..."
                     className="w-full bg-[#f9f9f9] border-none rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-[#C41E24]/20 transition-all text-gray-900"
                   />
@@ -63,6 +151,10 @@ const Contact = () => {
                   <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">Email Address</label>
                   <input 
                     type="email" 
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="john@example.com"
                     className="w-full bg-[#f9f9f9] border-none rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-[#C41E24]/20 transition-all text-gray-900"
                   />
@@ -72,8 +164,14 @@ const Contact = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">Service Interest</label>
                 <div className="relative">
-                  <select className="w-full bg-[#f9f9f9] border-none rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-[#C41E24]/20 transition-all text-gray-900 appearance-none cursor-pointer">
-                    <option value="" disabled selected>Select our services</option>
+                  <select 
+                    name="serviceInterested"
+                    required
+                    value={formData.serviceInterested}
+                    onChange={handleChange}
+                    className="w-full bg-[#f9f9f9] border-none rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-[#C41E24]/20 transition-all text-gray-900 appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>Select our services</option>
                     {services.map((service, i) => (
                       <option key={i} value={service}>{service}</option>
                     ))}
@@ -85,7 +183,11 @@ const Contact = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">Your Message</label>
                 <textarea 
+                  name="message"
+                  required
                   rows="5"
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder="Tell us about your project vision..."
                   className="w-full bg-[#f9f9f9] border-none rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-[#C41E24]/20 transition-all text-gray-900 resize-none"
                 ></textarea>
@@ -94,10 +196,19 @@ const Contact = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-[#C41E24] text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-red-200 transition-all"
+                disabled={loading}
+                className={`w-full bg-[#C41E24] text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg shadow-red-200 transition-all ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                <span>Send Message</span>
-                <FaPaperPlane className="text-sm" />
+                {loading ? (
+                  <span className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <>
+                    <span>Send Message</span>
+                    <FaPaperPlane className="text-sm" />
+                  </>
+                )}
               </motion.button>
             </form>
           </motion.div>
@@ -121,31 +232,38 @@ const Contact = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-[#25D366] text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 text-lg mb-12 shadow-lg shadow-green-900/20 transition-all"
+                onClick={() => window.open(whatsappLink, '_blank')}
               >
                 <FaWhatsapp className="text-2xl" />
                 Chat on WhatsApp
               </motion.button>
 
               <div className="space-y-8">
-                <div className="flex items-start gap-6">
-                  <div className="bg-white/10 p-4 rounded-2xl text-[#C41E24]">
-                    <FaMapMarkerAlt className="text-xl" />
+                {offices.map((office, idx) => (
+                  <div key={idx} className="flex items-start gap-6">
+                    <div className="bg-white/10 p-4 rounded-2xl text-[#C41E24]">
+                      <FaMapMarkerAlt className="text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold mb-2">{office.name}</h4>
+                      {office.addresses.map((addr, i) => (
+                        <p key={i} className="text-gray-400 leading-relaxed">{addr.address}</p>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-bold mb-2">Abuja Office</h4>
-                    <p className="text-gray-400 leading-relaxed">Suite 302, Grand Square Building, <br /> Wuse 2, Federal Capital Territory.</p>
-                  </div>
-                </div>
+                ))}
 
-                <div className="flex items-start gap-6">
-                  <div className="bg-white/10 p-4 rounded-2xl text-[#C41E24]">
-                    <FaMapMarkerAlt className="text-xl" />
+                {offices.length === 0 && (
+                  <div className="flex items-start gap-6">
+                    <div className="bg-white/10 p-4 rounded-2xl text-[#C41E24]">
+                      <FaMapMarkerAlt className="text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold mb-2">Abuja Office</h4>
+                      <p className="text-gray-400 leading-relaxed">Suite 302, Grand Square Building, <br /> Wuse 2, Federal Capital Territory.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-bold mb-2">Lagos Office</h4>
-                    <p className="text-gray-400 leading-relaxed">Plot 12, Admiralty Way, <br /> Victoria Island, Lagos State.</p>
-                  </div>
-                </div>
+                )}
               </div>
             </motion.div>
 
@@ -162,7 +280,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Call Us Anywhere</p>
-                  <p className="text-xl font-bold text-gray-900">+234 (0) 800 FACT NG</p>
+                  <p className="text-xl font-bold text-gray-900">{companyInfo.phone}</p>
                 </div>
               </div>
 
@@ -172,7 +290,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Email Support</p>
-                  <p className="text-xl font-bold text-gray-900">hello@factng.com</p>
+                  <p className="text-xl font-bold text-gray-900">{companyInfo.email}</p>
                 </div>
               </div>
 
@@ -182,7 +300,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Working Hours</p>
-                  <p className="text-xl font-bold text-gray-900">Mon - Fri: 8am - 6pm</p>
+                  <p className="text-xl font-bold text-gray-900">{companyInfo.workingHours}</p>
                 </div>
               </div>
             </motion.div>

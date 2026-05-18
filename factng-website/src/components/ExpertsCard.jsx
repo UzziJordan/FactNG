@@ -27,7 +27,7 @@ const ExpertsCard = ({ image, name, position, index = 0 }) => {
             hover: { scale: 1.1 }
           }}
           transition={{ duration: 0.4 }}
-          src={image}
+          src={typeof image === 'object' ? image.url : image}
           alt={name}
           className="w-full h-full object-cover"
         />

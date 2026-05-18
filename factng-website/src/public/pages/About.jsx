@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-import { getExpartsCard } from "../../services/api";
+import { getAllExperts, getStory } from "../../services/api";
 
 import ExpertsCard from "../../components/ExpertsCard";
 import WhyChooseCard from "../../components/WhyChooseCard";
@@ -49,14 +49,33 @@ const Counter = ({ value, duration = 3 }) => {
 const About = () => {
   const navigate = useNavigate();
   const [experts, setExperts] = useState([]);
+  const [story, setStory] = useState({
+    content: "Founded in 2016, FactNG began with a vision to redefine luxury interior and exterior design in Nigeria. From a small Abuja office to projects across Abuja and Lagos, we have transformed hundreds of residential and commercial spaces.",
+    image: { url: LivingRoom }
+  });
 
   useEffect(() => {
-    const loadExperts = async () => {
-      const data = await getExpartsCard();
-      setExperts(data);
+    const loadData = async () => {
+      // Load experts
+      try {
+        const expertsData = await getAllExperts();
+        setExperts(expertsData);
+      } catch (error) {
+        console.error('Error loading experts:', error);
+      }
+
+      // Load story
+      try {
+        const storyData = await getStory();
+        if (storyData) {
+          setStory(storyData);
+        }
+      } catch (error) {
+        console.error('Error loading story:', error);
+      }
     };
 
-    loadExperts();
+    loadData();
   }, []);
 
   const features = [
@@ -105,19 +124,8 @@ const About = () => {
             </h1>
 
             <div className="text-[#7A7570] space-y-5 text-lg">
-              <p>
-                Founded in 2016, FactNG began with a vision to redefine
-                luxury interior and exterior design in Nigeria.
-              </p>
-
-              <p>
-                From a small Abuja office to projects across Abuja and Lagos,
-                we have transformed hundreds of residential and commercial spaces.
-              </p>
-
-              <p className="text-gray-900 font-medium">
-                We blend global design trends with African aesthetics to create
-                spaces that are elegant, functional, and personal.
+              <p className="whitespace-pre-wrap">
+                {story.content}
               </p>
             </div>
           </motion.div>
@@ -127,11 +135,11 @@ const About = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="rounded-3xl overflow-hidden shadow-xl"
+            className="rounded-3xl overflow-hidden shadow-xl aspect-square"
           >
             <img
-              src={LivingRoom}
-              alt="Interior"
+              src={story.image?.url || LivingRoom}
+              alt="Our Story"
               className="w-full h-full object-cover"
             />
           </motion.div>
@@ -187,9 +195,13 @@ const About = () => {
           </h2>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {experts.map((expert, index) => (
-              <ExpertsCard key={expert._id} {...expert} index={index} />
-            ))}
+            {experts.length === 0 ? (
+              <p className="col-span-full text-center text-gray-400 py-10">No experts found.</p>
+            ) : (
+              experts.map((expert, index) => (
+                <ExpertsCard key={expert._id} {...expert} index={index} />
+              ))
+            )}
           </div>
         </div>
 
