@@ -3,6 +3,30 @@ const Project = require('../models/Project');
 const Contact = require('../models/Contact');
 const generateToken = require('../utils/generateToken');
 
+// @desc    Setup initial admin (only if none exist)
+// @route   POST /api/admin/setup
+// @access  Public
+exports.setupAdmin = async (req, res, next) => {
+  try {
+    const adminCount = await Admin.countDocuments();
+    if (adminCount > 0) {
+      return res.status(400).json({ message: 'Setup already completed' });
+    }
+
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide name, email, and password' });
+    }
+
+    const newAdmin = new Admin({ name, email, password, role: 'superadmin' });
+    await newAdmin.save();
+
+    res.status(201).json({ message: 'Initial admin created successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Register a new admin
 // @route   POST /api/admin/create
 // @access  Private/Admin

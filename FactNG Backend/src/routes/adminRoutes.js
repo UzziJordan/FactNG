@@ -6,6 +6,7 @@ const { storage } = require('../config/cloudinary');
 const upload = multer({ storage });
 
 const { 
+  setupAdmin,
   createAdmin, 
   loginAdmin, 
   getAdminProfile,
@@ -18,6 +19,7 @@ const {
 } = require('../controllers/adminController');
 
 // Auth
+router.post('/setup', setupAdmin);
 router.post('/login', loginAdmin);
 router.post('/create', protect, createAdmin);
 router.get('/me', protect, getAdminProfile);
