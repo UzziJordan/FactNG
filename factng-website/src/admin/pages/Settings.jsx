@@ -46,7 +46,7 @@ const Settings = () => {
 
   if (loading && !admin) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C41E24]"></div>
       </div>
     );
@@ -122,7 +122,7 @@ const Settings = () => {
         </motion.div>
 
         {/* Content Area Card */}
-        <motion.div variants={itemVariants} className="flex-1 bg-white p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 min-h-[400px] md:min-h-[600px]">
+        <motion.div variants={itemVariants} className="flex-1 bg-white p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 min-h-100 md:min-h-150">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -131,7 +131,7 @@ const Settings = () => {
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {activeTab === 'profile' && <ProfileDetails admin={admin} showStatus={showStatus} onUpdate={fetchProfile} />}
+              {activeTab === 'profile' && <ProfileDetails key={admin?._id || 'profile'} admin={admin} showStatus={showStatus} onUpdate={fetchProfile} />}
               {activeTab === 'password' && <ChangePassword showStatus={showStatus} />}
               {activeTab === 'add-admin' && <AddNewAdmin showStatus={showStatus} />}
               {activeTab === 'danger' && <DangerZone showStatus={showStatus} />}
@@ -176,7 +176,15 @@ const ProfileDetails = ({ admin, showStatus, onUpdate }) => {
     e.preventDefault();
     try {
       setLoading(true);
-      await updateAdminProfile(formData);
+      const updatedAdmin = await updateAdminProfile(formData);
+      
+      // Update local storage so the rest of the UI (header) stays in sync
+      const currentAdmin = JSON.parse(localStorage.getItem('admin') || '{}');
+      localStorage.setItem('admin', JSON.stringify({ ...currentAdmin, ...updatedAdmin }));
+      
+      // Also trigger a storage event so other components can listen if needed
+      window.dispatchEvent(new Event('storage'));
+
       showStatus('success', 'Profile updated successfully');
       onUpdate();
     } catch (error) {

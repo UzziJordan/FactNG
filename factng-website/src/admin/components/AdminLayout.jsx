@@ -1,10 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { MdNotifications, MdAccountCircle, MdMenu, MdClose } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 const AdminLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [admin, setAdmin] = useState(JSON.parse(localStorage.getItem('admin') || '{"name": "Admin User", "email": "admin@factng.com"}'));
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedAdmin = localStorage.getItem('admin');
+      if (storedAdmin) {
+        setAdmin(JSON.parse(storedAdmin));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Get current page title from path
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.includes('dashboard')) return 'Dashboard';
+    if (path.includes('projects')) return 'Projects';
+    if (path.includes('messages')) return 'Messages';
+    if (path.includes('ceo-settings')) return 'CEO Settings';
+    if (path.includes('settings')) return 'Account Settings';
+    return 'Admin Portal';
+  };
 
   return (
     <div className="flex bg-[#fcfbf9] min-h-screen overflow-x-hidden">
@@ -40,7 +66,7 @@ const AdminLayout = ({ children }) => {
             >
               <MdMenu />
             </button>
-            <h2 className="text-base md:text-lg lg:text-xl font-bold text-[#1A1A1A] truncate">Dashboard</h2>
+            <h2 className="text-base md:text-lg lg:text-xl font-bold text-[#1A1A1A] truncate">{getPageTitle()}</h2>
           </div>
           
           <div className="flex items-center gap-2 md:gap-3 lg:gap-6">
@@ -50,8 +76,8 @@ const AdminLayout = ({ children }) => {
             </button>
             <div className="flex items-center gap-2 lg:gap-3 border-l pl-2 md:pl-4 lg:pl-6 border-gray-100 overflow-hidden">
               <div className="text-right hidden sm:block shrink-0">
-                <p className="text-xs md:text-sm font-bold text-[#1A1A1A]">Admin User</p>
-                <p className="text-[10px] md:text-[11px] font-bold text-gray-400 uppercase tracking-wider">CEO</p>
+                <p className="text-xs md:text-sm font-bold text-[#1A1A1A]">{admin.name}</p>
+                <p className="text-[10px] md:text-[11px] font-bold text-gray-400 uppercase tracking-wider">{admin.email}</p>
               </div>
               <div className="w-8 h-8 md:w-10 md:h-10 bg-[#f5f3f1] rounded-full flex items-center justify-center text-xl md:text-2xl text-gray-400 shrink-0">
                 <MdAccountCircle />
