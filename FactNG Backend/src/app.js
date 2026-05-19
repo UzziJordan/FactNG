@@ -6,6 +6,7 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   'https://factng.onrender.com',
+  'https://fact-ng.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000'
 ];
