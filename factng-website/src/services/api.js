@@ -32,6 +32,16 @@ export const updateAdminProfile = async (profileData) => {
   return response.data;
 };
 
+export const createAdmin = async (adminData) => {
+  const response = await api.post('/admin/create', adminData);
+  return response.data;
+};
+
+export const deleteAccount = async () => {
+  const response = await api.delete('/admin/account');
+  return response.data;
+};
+
 // --- DASHBOARD ---
 export const getDashboardStats = async () => {
   const response = await api.get('/admin/dashboard/stats');

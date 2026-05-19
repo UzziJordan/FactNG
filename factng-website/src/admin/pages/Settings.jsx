@@ -46,7 +46,7 @@ const Settings = () => {
 
   if (loading && !admin) {
     return (
-      <div className="flex items-center justify-center min-h-100">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C41E24]"></div>
       </div>
     );
@@ -122,7 +122,7 @@ const Settings = () => {
         </motion.div>
 
         {/* Content Area Card */}
-        <motion.div variants={itemVariants} className="flex-1 bg-white p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 min-h-100 md:min-h-150">
+        <motion.div variants={itemVariants} className="flex-1 bg-white p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 min-h-[400px] md:min-h-[600px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -176,13 +176,13 @@ const ProfileDetails = ({ admin, showStatus, onUpdate }) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const updatedAdmin = await updateAdminProfile(formData);
+      const updatedData = await updateAdminProfile(formData);
       
       // Update local storage so the rest of the UI (header) stays in sync
       const currentAdmin = JSON.parse(localStorage.getItem('admin') || '{}');
-      localStorage.setItem('admin', JSON.stringify({ ...currentAdmin, ...updatedAdmin }));
+      localStorage.setItem('admin', JSON.stringify({ ...currentAdmin, ...updatedData }));
       
-      // Also trigger a storage event so other components can listen if needed
+      // Also trigger a storage event so other components can listen
       window.dispatchEvent(new Event('storage'));
 
       showStatus('success', 'Profile updated successfully');

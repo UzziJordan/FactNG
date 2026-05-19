@@ -108,9 +108,10 @@ exports.updateProfile = async (req, res, next) => {
 
     const updatedAdmin = await admin.save();
     res.json({
-      id: updatedAdmin._id,
+      _id: updatedAdmin._id,
       name: updatedAdmin.name,
-      email: updatedAdmin.email
+      email: updatedAdmin.email,
+      role: updatedAdmin.role
     });
   } catch (error) {
     next(error);
